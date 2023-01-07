@@ -67,9 +67,7 @@ def home():
 def find_movie():
     movie_id = request.args.get("id")
     if movie_id:
-        print(movie_id)
         movie = ia.get_movie(movie_id)
-        print(movie["plot"][0])
         selected_movie = Movie(
             title=movie["title"],
             year=movie["year"],
@@ -80,8 +78,7 @@ def find_movie():
             img_url=movie["full-size cover url"])
         db.session.add(selected_movie)
         db.session.commit()
-        return redirect(url_for("edit", id=movie_id))
-
+        return redirect(url_for("edit", id=selected_movie.id))
 
 
 @app.route("/edit", methods=["GET", "POST"])
