@@ -60,7 +60,11 @@ class AddForm(FlaskForm):
 
 @app.route("/")
 def home():
-    return render_template("index.html", movies=Movie.query.all())
+    all_movies = Movie.query.order_by(Movie.rating).all() #Сортирует фильмы по рейтингу и возвращает словарь
+    for i in range(len(all_movies)): 
+        all_movies[i].ranking = len(all_movies) - i
+    db.session.commit()
+    return render_template("index.html", movies=all_movies)
 
 
 @app.route("/find")
@@ -86,7 +90,7 @@ def edit():
     edit_form = UpdateForm()
     movie_id = request.args.get("id")  # Получаем аргумент из ссылки <a>
     movie = Movie.query.get(movie_id)
-    if request.method == "POST":
+    if edit_form.validate_on_submit():
         movie.rating = request.form["rating"]
         movie.review = request.form["review"]
         db.session.commit()
@@ -97,7 +101,7 @@ def edit():
 @app.route('/add', methods=["GET", "POST"])
 def add():
     add_form = AddForm()
-    if request.method == "POST":
+    if add_form.validate_on_submit():
         movies = ia.search_movie(request.form["title"])
         return render_template("select.html", movies=movies)
     # movie_id = request.args.get('id')
