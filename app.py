@@ -45,26 +45,10 @@ class AddForm(FlaskForm):
 
     submit = SubmitField("Add Movie")
 
-# new_movie = Movie(
-#     title="Phone Booth",
-#     year=2002,
-#     description="Publicist Stuart Shepard finds himself trapped in a phone booth, pinned down by an extortionist's sniper rifle. Unable to leave or receive outside help, Stuart's negotiation with the caller leads to a jaw-dropping climax.",
-#     rating=7.3,
-#     ranking=10,
-#     review="My favourite character was the caller.",
-#     img_url="https://static.kinoafisha.info/k/movie_posters/1080x1920/upload/movie_posters/3/0/3/5303/6a3dcdf603045a29b00cdd6ae228153c.jpg"
-# )
-# db.session.add(new_movie)
-# db.session.commit()
-
 
 @app.route("/")
 def home():
-    all_movies = Movie.query.order_by(Movie.rating).all() #Сортирует фильмы по рейтингу и возвращает словарь
-    for i in range(len(all_movies)): 
-        all_movies[i].ranking = len(all_movies) - i
-    db.session.commit()
-    return render_template("index.html", movies=all_movies)
+    return render_template("index.html", movies=Movie.query.order_by(Movie.rating))
 
 
 @app.route("/find")
@@ -75,10 +59,7 @@ def find_movie():
         selected_movie = Movie(
             title=movie["title"],
             year=movie["year"],
-            description=movie["plot"][0],
-            # rating=0,
-            # ranking=0,
-            # review="",
+            description=movie["plot outline"],
             img_url=movie["full-size cover url"])
         db.session.add(selected_movie)
         db.session.commit()
@@ -90,7 +71,7 @@ def edit():
     edit_form = UpdateForm()
     movie_id = request.args.get("id")  # Получаем аргумент из ссылки <a>
     movie = Movie.query.get(movie_id)
-    if edit_form.validate_on_submit():
+    if request.method == "POST":
         movie.rating = request.form["rating"]
         movie.review = request.form["review"]
         db.session.commit()
@@ -101,13 +82,9 @@ def edit():
 @app.route('/add', methods=["GET", "POST"])
 def add():
     add_form = AddForm()
-    if add_form.validate_on_submit():
+    if request.method == "POST":
         movies = ia.search_movie(request.form["title"])
         return render_template("select.html", movies=movies)
-    # movie_id = request.args.get('id')
-    # movie_to_delete = Movie.query.get(movie_id)
-    # db.session.delete(movie_to_delete)
-    # db.session.commit()
     return render_template("add.html", form=add_form)
 
 
